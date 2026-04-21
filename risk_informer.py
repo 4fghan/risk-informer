@@ -1,6 +1,7 @@
 import sys
 import subprocess
 import json
+import shutil
 
 try:
     from colorama import Fore, Style, init
@@ -16,12 +17,24 @@ import os
 
 def run_nmap(target):
     print(f"[+] Running Nmap scan on {target}...\n")
+    
+    if not shutil.which("nmap"):
+        print("[!] Nmap is not installed.")
+        print("[!] Install it with: brew install nmap")
+        return
 
-    subprocess.run(
+    os.makedirs("scans", exist_ok=True)
+    
+    result = subprocess.run(
         ["nmap", "-T4", "-F", "-sV", "-oX", "scans/scan.xml", target],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL
+        capture_output=True,
+        text=True
     )
+
+    if result.returncode != 0:
+        print("[!] Nmap scan failed:")
+        print(result.stderr)
+        return
 
 def color_risk(risk):
     if not COLOR_ENABLED:
