@@ -2,6 +2,9 @@ import sys
 import subprocess
 import json
 import shutil
+import argparse
+
+VERSION = "1.0.0"
 
 try:
     from colorama import Fore, Style, init
@@ -134,25 +137,41 @@ def generate_html_report(report, filename="report.html"):
         f.write(html)
 
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python risk_informer.py <target> [--output filename]")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description="Risk Informer - Analyze open ports and assess risk using Nmap",
+        epilog="""
+Examples:
+  python3 risk_informer.py scanme.nmap.org
+  python3 risk_informer.py 192.168.1.1 --verbose
+  python3 risk_informer.py example.com --html
+  python3 risk_informer.py target.com --output report.json
 
-    target = sys.argv[1]
-    output_file = None
-    verbose = False
-    html_output = False
+Tip:
+  Use --verbose for detailed risks and recommendations.
+""",
+    formatter_class=argparse.RawTextHelpFormatter
+    )
+    
+    parser.add_argument("target", nargs="?", help="Target domain or IP address")
+    parser.add_argument("--output", metavar="FILE", help="Save JSON report to file")    
+    parser.add_argument("--verbose", action="store_true", help="Show detailed risks and recommendations")
+    parser.add_argument("--html", action="store_true", help="Generate HTML report")
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"Risk Informer v{VERSION}"
+    )
 
-    if "--output" in sys.argv:
-        index = sys.argv.index("--output")
-        if index + 1 < len(sys.argv):
-            output_file = sys.argv[index + 1]
+    args = parser.parse_args()
 
-    if "--verbose" in sys.argv:
-        verbose = True
+    if not args.target:
+        parser.print_help()
+        return
 
-    if "--html" in sys.argv:
-        html_output = True
+    target = args.target
+    output_file = args.output
+    verbose = args.verbose
+    html_output = args.html
 
     run_nmap(target)
 
@@ -185,9 +204,9 @@ def main():
             
             recs = RECOMMENDATIONS.get(str(port), [])
             if recs:
-                 print("  ↳ Recommendations:")
-                 for r in recs:
-                     print(f"     - {r}")   
+                print("  ↳ Recommendations:")
+                for r in recs:
+                    print(f"     - {r}")   
 
         results.append({
             "port": int(port),
@@ -238,7 +257,6 @@ def main():
 
         generate_html_report(report)
         print("[+] HTML report saved to report.html")
-
 if __name__ == "__main__":
     main()
 
