@@ -12,6 +12,8 @@ except ImportError:
 from utils.parser import parse_nmap
 from utils.risk import assess_risk, PORT_DETAILS, RECOMMENDATIONS
 
+import os
+
 def run_nmap(target):
     print(f"[+] Running Nmap scan on {target}...\n")
 
