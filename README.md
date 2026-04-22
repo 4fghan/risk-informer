@@ -18,11 +18,13 @@ pip install -r requirements.txt
 
 ## Features
 
-- Port scanning with Nmap
-- Risk classification (High, Medium, Low, Info)
-- Verbose mode with detailed risks and recommendations
-- JSON report output
-- HTML report generation
+- Port scanning with Nmap  
+- Risk classification (High, Medium, Low, Info)  
+- Exposure detection (e.g., HTTP without HTTPS, SSH exposure)  
+- Risk scoring system (0–100 rating)  
+- JSON report output  
+- HTML report generation  
+- Verbose mode with detailed risks and recommendations  
 
 ## Usage
 
