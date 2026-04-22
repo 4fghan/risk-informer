@@ -4,7 +4,7 @@ import json
 import shutil
 import argparse
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 try:
     from colorama import Fore, Style, init
@@ -18,9 +18,11 @@ from utils.risk import assess_risk, PORT_DETAILS, RECOMMENDATIONS
 
 import os
 
-def run_nmap(target):
+def run_nmap(target, mode="fast"):
     print(f"[+] Running Nmap scan on {target}...\n")
     
+    print(f"[+] Scan mode: {mode.upper()}")
+
     if not shutil.which("nmap"):
         print("[!] Nmap is not installed.")
         print("[!] Install it with: brew install nmap")
@@ -163,18 +165,32 @@ Tip:
         version=f"Risk Informer v{VERSION}"
     )
 
+    mode_group = parser.add_mutually_exclusive_group()
+
+    mode_group.add_argument("--fast", action="store_true", help="Fast scan (default)")
+    mode_group.add_argument("--full", action="store_true", help="Full port scan (all ports)")
+    mode_group.add_argument("--stealth", action="store_true", help="Stealth SYN scan")
+
     args = parser.parse_args()
 
     if not args.target:
         parser.print_help()
         return
+    
+    mode = "fast"
+
+    if args.full:
+        mode = "full"
+    elif args.stealth:
+        mode = "stealth"    
+
 
     target = args.target
     output_file = args.output
     verbose = args.verbose
     html_output = args.html
 
-    run_nmap(target)
+    run_nmap(target, mode)
 
     ports = parse_nmap("scans/scan.xml")
 
