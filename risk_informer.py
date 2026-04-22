@@ -110,6 +110,7 @@ def generate_html_report(report, filename="report.html"):
         <p>Medium: {report['summary']['medium']}</p>
         <p>Low: {report['summary']['low']}</p>
         <p>Total Ports: {report['summary']['total_ports']}</p>
+        <p>Risk Score: {report['summary']['risk_score']} ({report['summary']['risk_level']})</p>
 
         <h3>Findings</h3>
     """
@@ -181,17 +182,42 @@ Tip:
         print("[!] No open ports found or host is down.")
         return
 
-    print(f"\n[+] Scan Results for {target}\n")
 
+    services = [service.lower() for _, service in ports]
+
+    print("\n[!] Exposure Warnings:")
+
+    warnings = []
+
+    if len(ports) > 10:
+        warnings.append("High number of open ports detected — possible overexposure")
+
+    if "ftp" in services:
+        warnings.append("FTP exposed — check for anonymous login")
+
+    if "http" in services and "https" not in services:
+        warnings.append("HTTP without HTTPS detected")
+
+    if "ssh" in services:
+        warnings.append("SSH exposed — ensure key-based authentication")
+
+    if warnings:
+        for w in warnings:
+            print(f"  - {w}")
+    else:
+        print("  No major exposure risks detected")
+
+    print(f"\n[+] Scan Results for {target}\n")
+    
     high = 0
     medium = 0
     results = []
 
     for port, service in ports:
         risk, message = assess_risk(port, service)
-
+        
         colored_risk = color_risk(risk)
-
+        
         print(f"Port {port} ({service}) → OPEN → {colored_risk} RISK")
         print(f"  ↳ {message}")
         
@@ -213,12 +239,37 @@ Tip:
             "service": service,
             "risk": risk,
             "message": message
-        })
+         })
 
         if risk == "HIGH":
             high += 1
         elif risk == "MEDIUM":
             medium += 1
+
+    low = sum(1 for r in results if r["risk"] == "LOW")       
+
+    score = 0
+    for r in results:
+        if r["risk"] == "HIGH":
+            score += 25
+        elif r["risk"] == "MEDIUM":
+            score += 15
+        elif r["risk"] == "LOW":
+            score += 5
+        elif r["risk"] == "INFO":
+            score += 1
+
+    score += len(warnings) * 10
+    score = min(score, 100)
+
+    if score >= 70:
+        level = "HIGH"
+    elif score >= 40:
+        level = "MEDIUM"
+    else:
+        level = "LOW"
+
+    print(f"\n[+] Risk Score: {score}/100 ({level})")
 
     print("\n[+] Summary:")
     print(f"High Risk: {high}")
@@ -226,14 +277,16 @@ Tip:
 
     if output_file:
         low = sum(1 for r in results if r["risk"] == "LOW")
-
+    
         report = {
             "target": target,
             "summary": {
                 "high": high,
                 "medium": medium,
                 "low": low,
-                "total_ports": len(results)
+                "total_ports": len(results),
+                "risk_score": score,
+                "risk_level": level
             },
             "ports": results
         }
@@ -250,7 +303,10 @@ Tip:
                 "high": high,
                 "medium": medium,
                 "low": sum(1 for r in results if r["risk"] == "LOW"),
-                "total_ports": len(results)
+                "total_ports": len(results),
+                "risk_score": score,
+                "risk_level": level
+                
             },
             "ports": results    
         }
