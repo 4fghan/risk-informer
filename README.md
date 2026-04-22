@@ -28,10 +28,11 @@ pip install -r requirements.txt
 
 ## Usage
 
+```bash
 python3 risk_informer.py scanme.nmap.org
 python3 risk_informer.py scanme.nmap.org --verbose
 python3 risk_informer.py scanme.nmap.org --html
-
+```
 # Scan modes
 python3 risk_informer.py scanme.nmap.org --full
 python3 risk_informer.py scanme.nmap.org --stealth
