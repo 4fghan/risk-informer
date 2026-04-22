@@ -34,9 +34,11 @@ python3 risk_informer.py scanme.nmap.org --verbose
 python3 risk_informer.py scanme.nmap.org --html
 ```
 # Scan modes
+
+```bash
 python3 risk_informer.py scanme.nmap.org --full
 python3 risk_informer.py scanme.nmap.org --stealth
-
+```
 Replace scanme.nmap.org with your target domain or IP.
 
 ## Example Output
